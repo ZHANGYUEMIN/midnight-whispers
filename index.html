@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>欲夜低吟 - 18+ 情侣私密真心话大冒险</title>
+  
+  <!-- SEO 元数据优化 -->
+  <meta name="description" content="专为情侣（支持男女、男男、女女）量身定制的18+纯前端私密真心话大冒险。拥有微醺温存到狂热禁忌的4级梯度热度，奢华暗色霓虹玻璃态设计。数据完全保存在浏览器本地，绝对隐私安全。">
+  <meta name="keywords" content="情侣真心话大冒险,18+真心话大冒险,成人桌游,同性情侣真心话,异性情侣真心话,私密情侣游戏,R18真心话大冒险">
+  <meta name="author" content="Antigravity">
+  
+  <!-- 移动端全屏体验优化 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0514">
+  
+  <!-- 样式文件 -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Lucide 矢量图标库 (CDN 引入) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- 1. Canvas 粒子微光背景 -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="blur-glow glow-pink"></div>
+  <div class="blur-glow glow-cyan"></div>
+
+  <!-- 2. 页眉 (Header) -->
+  <header>
+    <div class="logo">
+      <i data-lucide="flame" class="logo-icon"></i>
+      <h1>欲夜低吟 <span style="font-size: 0.75rem; color: hsl(var(--primary-pink)); font-weight: 800; border: 1px solid hsl(var(--primary-pink)); padding: 1px 4px; border-radius: 4px; margin-left: 5px;">R18+</span></h1>
+    </div>
+    <div class="header-actions">
+      <!-- 甜美氛围声音控制 -->
+      <button id="btn-sound-toggle" class="icon-btn active" title="音效开关">
+        <i data-lucide="volume-2"></i>
+      </button>
+      <!-- 自定义题库面板按钮 -->
+      <button id="btn-open-drawer" class="icon-btn" title="专属自定义题库">
+        <i data-lucide="sliders"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- 3. 主游戏内容区 (Main) -->
+  <main>
+    
+    <!-- ==================== 配置屏幕 (Setup Screen) ==================== -->
+    <div id="setup-screen" class="glass-panel">
+      <div class="setup-title">
+        <h2>私密心动配置</h2>
+        <p>开启你们今晚的欲望之约，数据绝对隐私安全</p>
+      </div>
+      
+      <div class="setup-form">
+        <!-- 玩家一配置 -->
+        <div class="player-block player-block-1">
+          <div class="player-label">
+            <i data-lucide="heart"></i> 玩家一 (Player 1)
+          </div>
+          <div class="input-group">
+            <input type="text" id="p1-name" class="input-field" placeholder="输入姓名/昵称 (例: 亲爱的他)" autocomplete="off">
+          </div>
+          <div class="gender-selector">
+            <button type="button" class="gender-btn active" data-gender="male">
+              <i data-lucide="mars"></i>
+              <span>他 (男)</span>
+            </button>
+            <button type="button" class="gender-btn" data-gender="female">
+              <i data-lucide="venus"></i>
+              <span>她 (女)</span>
+            </button>
+            <button type="button" class="gender-btn" data-gender="nonbinary">
+              <i data-lucide="gender-neuter"></i>
+              <span>TA (其他)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 玩家二配置 -->
+        <div class="player-block player-block-2">
+          <div class="player-label">
+            <i data-lucide="sparkles"></i> 玩家二 (Player 2)
+          </div>
+          <div class="input-group">
+            <input type="text" id="p2-name" class="input-field" placeholder="输入姓名/昵称 (例: 小宝贝)" autocomplete="off">
+          </div>
+          <div class="gender-selector">
+            <button type="button" class="gender-btn" data-gender="male">
+              <i data-lucide="mars"></i>
+              <span>他 (男)</span>
+            </button>
+            <button type="button" class="gender-btn active" data-gender="female">
+              <i data-lucide="venus"></i>
+              <span>她 (女)</span>
+            </button>
+            <button type="button" class="gender-btn" data-gender="nonbinary">
+              <i data-lucide="gender-neuter"></i>
+              <span>TA (其他)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 热度梯度滑块 -->
+        <div class="heat-level-group">
+          <div class="heat-header">
+            <div class="heat-title">
+              <i data-lucide="flame"></i>
+              <span>今晚期望热度</span>
+            </div>
+            <span id="heat-badge" class="heat-badge">LEVEL 2</span>
+          </div>
+          
+          <div class="slider-container">
+            <input type="range" id="heat-slider" class="slider-input" min="1" max="4" value="2" step="1">
+          </div>
+          
+          <div id="heat-description-box" class="heat-description-box">
+            <h4 id="heat-title">暧昧调情 (Flirting)</h4>
+            <p id="heat-desc">带有暗示性的话题、挑逗性肢体接触与亲吻。温度逐渐上升，打破害羞，眼神与肢体开始产生电火花。</p>
+          </div>
+        </div>
+
+        <!-- 开启按纽 -->
+        <button id="btn-start" class="btn btn-primary" style="margin-top: 10px;">
+          <i data-lucide="play"></i>
+          <span>步入欢愉之夜</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== 游玩屏幕 (Game Play Screen) ==================== -->
+    <div id="game-screen" class="glass-panel">
+      <!-- 头部玩家信息与热度提示 -->
+      <div class="game-header">
+        <div class="turn-indicator">
+          <div id="turn-avatar" class="turn-avatar">
+            <i data-lucide="heart"></i>
+          </div>
+          <div class="turn-info">
+            <span class="turn-title">当前行动情侣</span>
+            <span id="turn-name" class="turn-name">玩家一</span>
+          </div>
+        </div>
+        <div class="quick-status">
+          <button id="quick-heat-badge" class="quick-heat-badge">
+            <i data-lucide="flame" style="color: hsl(var(--accent-gold)); width: 14px; height: 14px;"></i>
+            <span id="quick-heat-text">LV.2</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3D 卡片显示区域 -->
+      <div class="card-area">
+        <div id="card-container" class="card-container">
+          <div id="card-inner" class="card-inner">
+            
+            <!-- 卡片正面 (未抽取状态) -->
+            <div class="card-face card-front">
+              <div class="card-pulse-icon">
+                <i data-lucide="help-circle"></i>
+              </div>
+              <div>
+                <p class="card-front-title">命运抽签卡</p>
+                <p class="card-front-hint" style="margin-top: 6px;">点击下方选择你的抉择</p>
+              </div>
+            </div>
+
+            <!-- 卡片背面 (翻开后的真心话/大冒险/惩罚内容) -->
+            <div id="card-back" class="card-face card-back">
+              <div class="card-back-header">
+                <span id="card-badge" class="card-badge">真心话</span>
+                <div id="card-stars" class="card-heat-icon">
+                  <!-- 动态输出星级表示热度 -->
+                </div>
+              </div>
+              <div class="card-content-wrapper">
+                <p id="card-prompt" class="card-prompt-text">在这里显示题目内容...</p>
+              </div>
+              <div class="card-back-footer">
+                <span>欲夜低吟 · 专为情侣设计</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部控制按钮区域 -->
+      <div class="action-area">
+        <!-- 抽牌决策行 -->
+        <div id="decision-buttons" class="decision-buttons">
+          <button id="btn-truth" class="btn btn-truth">
+            <i data-lucide="message-square"></i>
+            <span>真心话 (Truth)</span>
+          </button>
+          <button id="btn-dare" class="btn btn-dare">
+            <i data-lucide="flame"></i>
+            <span>大冒险 (Dare)</span>
+          </button>
+        </div>
+
+        <!-- 任务结案与处罚行 -->
+        <div id="complete-buttons" class="complete-buttons hidden">
+          <div class="forfeit-row">
+            <button id="btn-done" class="btn btn-primary">
+              <i data-lucide="check-circle"></i>
+              <span>我已完成 (Done)</span>
+            </button>
+            <button id="btn-forfeit" class="btn btn-penalty">
+              <i data-lucide="glass-water"></i>
+              <span>认罚喝一杯 / 惩罚</span>
+            </button>
+          </div>
+          <!-- 跳过惩罚/完成惩罚 (只在认罚时出现) -->
+          <button id="btn-skip-penalty" class="btn btn-glass hidden">
+            <i data-lucide="chevrons-right"></i>
+            <span>完成惩罚，进入下一轮</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 4. 页脚 (Footer) -->
+  <footer>
+    <p>欲夜低吟 © 2026. 纯前端绝对私密游戏. 支持 GitHub Pages 直接一键部署.</p>
+    <p style="margin-top: 6px; font-size: 0.75rem;">18禁成人派对道具 · 情侣专属亲密润滑剂</p>
+  </footer>
+
+  <!-- 5. 滑出式专属自定义题库抽屉 (Drawer) -->
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <div id="drawer" class="drawer">
+    <div class="drawer-header">
+      <h3>
+        <i data-lucide="sliders"></i>
+        <span>情侣私密自定义</span>
+      </h3>
+      <button id="btn-close-drawer" class="icon-btn" title="关闭">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="drawer-content">
+      <!-- 新增自定义题目 -->
+      <div class="custom-list-container">
+        <span class="section-title">
+          <i data-lucide="plus-circle" style="width:16px; height:16px;"></i>
+          <span>添加情侣私密专享题</span>
+        </span>
+        <div class="custom-input-box">
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="custom-type" value="truth" checked>
+              <span>真心话</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="custom-type" value="dare">
+              <span>大冒险</span>
+            </label>
+          </div>
+          <textarea id="custom-text" class="textarea-field" placeholder="写下你们今晚想对彼此说或做的私密事情...&#10;支持代词占位符：&#10;{self} (你) / {partner} (对方)&#10;{self_pron} (你的人称) / {partner_pron} (对方人称)" rows="3"></textarea>
+          <button id="btn-add-custom" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem;">
+            <i data-lucide="check"></i>
+            <span>添加题库</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 已有自定义项目列表 -->
+      <div class="custom-list-container">
+        <span class="section-title">
+          <i data-lucide="list" style="width:16px; height:16px;"></i>
+          <span>已存储的专属题目</span>
+        </span>
+        <div id="custom-items-list" class="custom-items-list">
+          <!-- 动态渲染自定义题目 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 载入题库与交互引擎 -->
+  <script src="database.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
