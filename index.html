@@ -295,8 +295,33 @@
   <!-- 4. 页脚 (Footer) -->
   <footer>
     <p>欲夜低吟 © 2026. 纯前端绝对私密游戏. 支持 GitHub Pages 直接一键部署.</p>
-    <p style="margin-top: 6px; font-size: 0.75rem;">18禁成人派对道具 · 情侣专属亲密润滑剂</p>
+    <div class="footer-links">
+      <a href="#" id="link-privacy"><i data-lucide="shield-check"></i> 隐私条款 (Privacy Policy)</a>
+      <span class="footer-dot">•</span>
+      <a href="#" id="link-terms"><i data-lucide="file-text"></i> 免责声明 (Terms of Service)</a>
+      <span class="footer-dot">•</span>
+      <a href="https://github.com/ZHANGYUEMIN/midnight-whispers" target="_blank"><i data-lucide="github"></i> 开源分享 (GitHub)</a>
+    </div>
+    <p style="margin-top: 10px; font-size: 0.75rem; color: hsl(var(--text-muted));">18禁成人派对道具 · 情侣专属亲密润滑剂</p>
   </footer>
+
+  <!-- 隐私条款与免责声明弹窗 (Privacy & Terms Modal) -->
+  <div id="privacy-modal" class="modal-overlay">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h3 id="modal-title">
+          <i data-lucide="shield-check"></i>
+          <span>隐私条款与服务协议</span>
+        </h3>
+        <button id="btn-close-modal" class="icon-btn" title="关闭">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="modal-body">
+        <!-- 动态注入隐私条款或免责声明内容 -->
+      </div>
+    </div>
+  </div>
 
   <!-- 5. 滑出式专属自定义题库抽屉 (Drawer) -->
   <div id="drawer-overlay" class="drawer-overlay"></div>

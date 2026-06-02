@@ -68,6 +68,14 @@ function initDOMElements() {
     btnDisagree: document.getElementById('btn-disagree'),
     screenFlash: document.getElementById('screen-flash'),
     
+    // Privacy & Terms Modal Elements
+    privacyModal: document.getElementById('privacy-modal'),
+    modalTitle: document.getElementById('modal-title'),
+    modalBody: document.getElementById('modal-body'),
+    btnCloseModal: document.getElementById('btn-close-modal'),
+    linkPrivacy: document.getElementById('link-privacy'),
+    linkTerms: document.getElementById('link-terms'),
+    
     // Setup inputs
     p1Name: document.getElementById('p1-name'),
     p2Name: document.getElementById('p2-name'),
@@ -1204,6 +1212,66 @@ function bindEvents() {
     // 恢复默认高光位置居中
     elements.cardContainer.style.setProperty('--shine-x', '50%');
     elements.cardContainer.style.setProperty('--shine-y', '50%');
+  });
+
+  // ==========================================
+  // 4. 隐私条款与免责声明弹窗交互逻辑
+  // ==========================================
+  const PRIVACY_TEXT = `
+    <p><strong>【极奢 18+ 情侣真心话大冒险 - 隐私保护承诺】</strong></p>
+    <p>为了保障您与伴侣极度敏感和绝对私密的互动安全，我们特别制定此隐私协议：</p>
+    <p><strong>1. 100% 纯前端 serverless 架构</strong><br>
+    本程序《欲夜低吟》是一款完全运行在您当前设备浏览器中的单页应用。<strong>我们不含有任何后端服务器，也没有设置任何远程数据网络接口，更不会上传您的任何姓名、对话或自定义题目。</strong></p>
+    <p><strong>2. 零数据追踪与无第三方 Cookie</strong><br>
+    本游戏绝不收集、追踪或转卖您的个人隐私信息。我们不会引入任何广告追踪器（Trackers）、社交分享统计代码或广告分析组件，确保您在绝对静谧、不受打扰的安全环境中开启亲密派对。</p>
+    <p><strong>3. 绝对安全的本地浏览器缓存 (LocalStorage)</strong><br>
+    当您在此浏览器中设置双方姓名、期望热度、声音开关，或者在侧边抽屉中添加了专属自定义私密真心话大冒险时，<strong>所有数据均只采用行业标准的 LocalStorage 技术保存在您这台设备的浏览器缓存里。</strong>数据在您主动清除浏览器缓存前将一直保留，他人绝对无法从网络端进行窥探或劫持。</p>
+    <p><strong>4. 源代码完全开源与可信安全</strong><br>
+    本程序所有源代码在 GitHub 开源共享，完全可审计。任何人均可对我们的网络活动与数据存取方式进行核查，确保没有任何隐私漏洞。您可以绝对放心地享受今晚的亲密温存！</p>
+  `;
+
+  const TERMS_TEXT = `
+    <p><strong>【欲夜低吟 - 学术开源分享免责条款】</strong></p>
+    <p>在您访问或游玩本程序前，请务必仔细阅读并理解本免责条款：</p>
+    <p><strong>1. 仅限个人学术、学习与代码设计交流</strong><br>
+    本项目为情侣私密网页设计开源作品，旨在分享及展示高保真 3D Parallax 卡片倾斜、手势回弹、以及 Canvas 重力粒子喷涌和声音合成技术。本程序仅作为开源代码交流展示，<strong>严禁任何个人或组织将其用于商业牟利、非法色情聚会招揽或任何违反相关法律法规的活动。</strong></p>
+    <p><strong>2. 严格的 18+（R18）成人年龄限制</strong><br>
+    由于本游戏包含大量针对伴侣深度亲密关系、身体敏感地带挑逗爱抚、两性幻想及性爱模仿等深度敏感的成人级真心话大冒险任务，<strong>严禁任何未满 18 周岁的未成年人浏览、游玩或传播本游戏内容。</strong></p>
+    <p><strong>3. 完全自愿与伴侣尊重基本原则</strong><br>
+    本游戏中的所有真心话大冒险互动挑战，必须建立在您与伴侣**双方完全知情同意、完全自愿、彼此深厚尊重、并且确保人身健康与安全**的前提下进行。任何一方绝对不得以本程序或抽签结果为借口强迫伴侣进行其感到违背意愿、痛苦或不适的任何行为。</p>
+    <p><strong>4. 滥用后果全权由使用者自负</strong><br>
+    由于本程序为完全开源及纯前端运行，本开源项目作者、开发者及贡献团队对使用者在游戏过程中产生的任何情感争议、人身安全事件、意外纠纷、或治安法律问题，<strong>概不承担任何直接或间接的民事、刑事与连带法律赔偿责任，所有风险与后果由使用者本人全权自行承担。</strong>如果您继续使用，即代表您强制同意本条款所有约束。</p>
+  `;
+
+  function showModal(title, bodyHTML) {
+    elements.modalTitle.querySelector('span').textContent = title;
+    elements.modalBody.innerHTML = bodyHTML;
+    elements.privacyModal.classList.add('active');
+    lucide.createIcons();
+    playSound('success');
+  }
+
+  function hideModal() {
+    elements.privacyModal.classList.remove('active');
+    playSound('click');
+  }
+
+  elements.linkPrivacy.addEventListener('click', function(e) {
+    e.preventDefault();
+    showModal("隐私条款 (Privacy Policy)", PRIVACY_TEXT);
+  });
+
+  elements.linkTerms.addEventListener('click', function(e) {
+    e.preventDefault();
+    showModal("免责声明 (Terms of Service)", TERMS_TEXT);
+  });
+
+  elements.btnCloseModal.addEventListener('click', hideModal);
+  
+  elements.privacyModal.addEventListener('click', function(e) {
+    if (e.target === elements.privacyModal) {
+      hideModal();
+    }
   });
 }
 
