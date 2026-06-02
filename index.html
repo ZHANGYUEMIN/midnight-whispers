@@ -23,6 +23,63 @@
 </head>
 <body>
 
+  <!-- 0. 全屏安全防护蒙层 (Onboarding Overlay) -->
+  <div id="onboarding-overlay" class="onboarding-overlay">
+    
+    <!-- 人机解锁面板 (CAPTCHA Panel) -->
+    <div id="captcha-panel" class="onboarding-panel glass-panel">
+      <div class="onboarding-title">
+        <div class="lock-heart-container">
+          <i data-lucide="heart" class="heart-pulse-icon"></i>
+        </div>
+        <h2>安全心动认证</h2>
+        <p>请向右滑动胶囊以证明您不是机器人</p>
+      </div>
+      <div class="slide-verify-container">
+        <div id="slide-track" class="slide-track">
+          <div id="slide-progress" class="slide-progress"></div>
+          <span id="slide-text" class="slide-text">向右滑动以证明心动</span>
+          <div id="slide-handle" class="slide-handle">
+            <i data-lucide="chevrons-right"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 18+ 免责声明面板 (Disclaimer Panel, 默认隐藏) -->
+    <div id="disclaimer-panel" class="onboarding-panel glass-panel hidden">
+      <div class="onboarding-title">
+        <i data-lucide="shield-alert" class="disclaimer-icon"></i>
+        <h2>免责协议与18禁警告</h2>
+      </div>
+      <div class="disclaimer-text-box">
+        <p><strong>【重要学术与学习分享声明】</strong></p>
+        <p>1. 本程序《欲夜低吟》（Midnight Whispers）为开源情侣互动设计项目，其代码与架构仅供个人学习交流、娱乐交互设计、前端技术研究之用途，严禁任何个人或组织将其用于商业盈利、非法派对招揽或任何形式的恶意网络服务。</p>
+        <p>2. 游戏包含大量针对成年情侣（已婚/恋爱伴侣）量身定制的敏感对话、深度肢体接触以及两性私密关系探索互动。本程序无法辨识使用者真实年龄，使用本程序的前提是您必须为<strong>年满 18 周岁且具备完全民事行为能力的成年人</strong>。</p>
+        <p>3. 使用者在使用本程序开展情侣互动时，必须在双方完全自愿、彼此尊重、保障人身与财产安全的前提下进行。由不当使用、强迫互动或非法传播本程序内容所产生的一切道德争议、纠纷、治安及连带法律后果，<strong>均由使用者本人全权自行承担，开发者对此不承担任何连带赔偿与法律责任</strong>。</p>
+        <p>4. 如果您继续点击进入本程序，即代表您已仔细阅读并无条件强制同意上述所有条款约束。否则，请点击“拒绝并退出”按钮离开本页面。</p>
+      </div>
+      <div class="disclaimer-agree-row">
+        <label class="checkbox-container">
+          <input type="checkbox" id="agree-checkbox">
+          <span class="checkmark"></span>
+          <span class="checkbox-text">我已年满18周岁并强制同意上述学术免责条款</span>
+        </label>
+      </div>
+      <div class="disclaimer-btns">
+        <button id="btn-agree" class="btn btn-primary disabled">
+          <i data-lucide="check-circle-2"></i>
+          <span>接受条款，步入深夜</span>
+        </button>
+        <button id="btn-disagree" class="btn btn-glass">
+          <i data-lucide="log-out"></i>
+          <span>拒绝并安全退出</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
   <!-- 1. Canvas 粒子微光背景 -->
   <canvas id="bg-canvas"></canvas>
   <div class="blur-glow glow-pink"></div>
@@ -50,7 +107,7 @@
   <main>
     
     <!-- ==================== 配置屏幕 (Setup Screen) ==================== -->
-    <div id="setup-screen" class="glass-panel">
+    <div id="setup-screen" class="glass-panel" style="display: none;">
       <div class="setup-title">
         <h2>私密心动配置</h2>
         <p>开启你们今晚的欲望之约，数据绝对隐私安全</p>
@@ -156,36 +213,44 @@
 
       <!-- 3D 卡片显示区域 -->
       <div class="card-area">
-        <div id="card-container" class="card-container">
-          <div id="card-inner" class="card-inner">
-            
-            <!-- 卡片正面 (未抽取状态) -->
-            <div class="card-face card-front">
-              <div class="card-pulse-icon">
-                <i data-lucide="help-circle"></i>
-              </div>
-              <div>
-                <p class="card-front-title">命运抽签卡</p>
-                <p class="card-front-hint" style="margin-top: 6px;">点击下方选择你的抉择</p>
-              </div>
-            </div>
-
-            <!-- 卡片背面 (翻开后的真心话/大冒险/惩罚内容) -->
-            <div id="card-back" class="card-face card-back">
-              <div class="card-back-header">
-                <span id="card-badge" class="card-badge">真心话</span>
-                <div id="card-stars" class="card-heat-icon">
-                  <!-- 动态输出星级表示热度 -->
+        <div class="card-deck-wrapper">
+          <!-- 物理叠牌修饰卡 -->
+          <div class="card-deck-underlay deck-1"></div>
+          <div class="card-deck-underlay deck-2"></div>
+          
+          <div id="card-container" class="card-container">
+            <div id="card-inner" class="card-inner">
+              
+              <!-- 卡片正面 (未抽取状态) -->
+              <div class="card-face card-front">
+                <div class="card-shine"></div>
+                <div class="card-pulse-icon">
+                  <i data-lucide="help-circle"></i>
+                </div>
+                <div>
+                  <p class="card-front-title">命运抽签卡</p>
+                  <p class="card-front-hint" style="margin-top: 6px;">点击下方选择你的抉择</p>
                 </div>
               </div>
-              <div class="card-content-wrapper">
-                <p id="card-prompt" class="card-prompt-text">在这里显示题目内容...</p>
+  
+              <!-- 卡片背面 (翻开后的真心话/大冒险/惩罚内容) -->
+              <div id="card-back" class="card-face card-back">
+                <div class="card-shine"></div>
+                <div class="card-back-header">
+                  <span id="card-badge" class="card-badge">真心话</span>
+                  <div id="card-stars" class="card-heat-icon">
+                    <!-- 动态输出星级表示热度 -->
+                  </div>
+                </div>
+                <div class="card-content-wrapper">
+                  <p id="card-prompt" class="card-prompt-text">在这里显示题目内容...</p>
+                </div>
+                <div class="card-back-footer">
+                  <span>欲夜低吟 · 专为情侣设计</span>
+                </div>
               </div>
-              <div class="card-back-footer">
-                <span>欲夜低吟 · 专为情侣设计</span>
-              </div>
+  
             </div>
-
           </div>
         </div>
       </div>
@@ -283,6 +348,9 @@
       </div>
     </div>
   </div>
+
+  <!-- 6. 电影级过场闪光层 -->
+  <div id="screen-flash" class="screen-flash"></div>
 
   <!-- 载入题库与交互引擎 -->
   <script src="database.js"></script>

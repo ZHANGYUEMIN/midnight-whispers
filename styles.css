@@ -1347,3 +1347,449 @@ footer a:hover {
   transform: scale(0.96) translateY(1px) !important;
   transition: transform 0.05s ease-out;
 }
+
+/* ==========================================================================
+   安全认证与免责声明面板样式 (Onboarding & CAPTCHA Panel)
+   ========================================================================== */
+.onboarding-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(15, 8, 30, 0.96) 0%, rgba(5, 2, 10, 0.99) 100%);
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s;
+}
+
+.onboarding-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.onboarding-panel {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(135deg, rgba(30, 15, 55, 0.7) 0%, rgba(15, 8, 35, 0.75) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 36px 30px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(155, 80, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+  animation: fadeInScale 0.6s cubic-bezier(0.25, 1.5, 0.5, 1) forwards;
+}
+
+@keyframes fadeInScale {
+  0% { transform: scale(0.9) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.onboarding-panel.hidden {
+  display: none !important;
+}
+
+.onboarding-title {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding-title h2 {
+  font-size: 1.6rem;
+  background: linear-gradient(135deg, #fff 30%, hsl(var(--primary-cyan)), hsl(var(--primary-purple)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 15px rgba(155, 80, 255, 0.3);
+}
+
+.onboarding-title p {
+  color: hsl(var(--text-secondary));
+  font-size: 0.9rem;
+}
+
+/* 滑动解锁 CAPTCHA */
+.lock-heart-container {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--primary-pink));
+  box-shadow: 0 0 15px rgba(255, 100, 180, 0.15);
+  animation: heartBeating 1.8s infinite ease-in-out;
+}
+
+.lock-heart-container svg, .lock-heart-container .lucide {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 0 8px hsl(var(--primary-pink)));
+}
+
+@keyframes heartBeating {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); box-shadow: 0 0 25px rgba(255, 100, 180, 0.3); }
+}
+
+.slide-verify-container {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.slide-track {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+  user-select: none;
+}
+
+.slide-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, rgba(0, 195, 255, 0.15) 0%, rgba(155, 80, 255, 0.35) 100%);
+  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+  transition: none;
+  pointer-events: none;
+}
+
+.slide-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(var(--text-muted));
+  letter-spacing: 1px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, hsl(var(--text-muted)) 0%, #fff 50%, hsl(var(--text-muted)) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 3s infinite linear;
+}
+
+@keyframes shineText {
+  0% { background-position: -100% 0; }
+  100% { background-position: 100% 0; }
+}
+
+.slide-handle {
+  position: absolute;
+  left: 3px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fff 0%, hsl(var(--text-secondary)) 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 10px hsla(var(--primary-cyan), 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  z-index: 3;
+  color: #05020a;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.slide-handle:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 20px hsla(var(--primary-cyan), 0.8);
+}
+
+.slide-handle svg, .slide-handle .lucide {
+  width: 20px;
+  height: 20px;
+}
+
+.slide-track.verified {
+  border-color: rgba(74, 222, 128, 0.4) !important;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.2) !important;
+}
+
+.slide-track.verified .slide-text {
+  background: linear-gradient(90deg, #4ade80 0%, #a7f3d0 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 800;
+  animation: none !important;
+}
+
+/* 18+ 免责声明面板样式 */
+.disclaimer-icon {
+  width: 48px;
+  height: 48px;
+  color: hsl(var(--accent-red));
+  filter: drop-shadow(0 0 10px hsla(var(--accent-red), 0.5));
+  animation: pulseGlowRed 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlowRed {
+  0%, 100% { filter: drop-shadow(0 0 8px hsla(var(--accent-red), 0.4)); }
+  50% { filter: drop-shadow(0 0 18px hsla(var(--accent-red), 0.85)); }
+}
+
+.disclaimer-text-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  color: hsl(var(--text-secondary));
+  line-height: 1.6;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.disclaimer-text-box p strong {
+  color: #fff;
+}
+
+.disclaimer-agree-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 5px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: hsl(var(--text-secondary));
+  user-select: none;
+  text-align: left;
+}
+
+.checkbox-container input {
+  display: none;
+}
+
+.checkmark {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.checkbox-container:hover .checkmark {
+  border-color: hsl(var(--primary-purple));
+  box-shadow: 0 0 8px hsla(var(--primary-purple), 0.25);
+}
+
+.checkbox-container input:checked ~ .checkmark {
+  background: hsl(var(--primary-purple));
+  border-color: hsl(var(--primary-purple));
+  box-shadow: 0 0 12px hsla(var(--primary-purple), 0.5);
+}
+
+.checkmark::after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-container input:checked ~ .checkmark::after {
+  display: block;
+}
+
+.disclaimer-agree-row.shake {
+  animation: textShake 0.4s ease;
+}
+
+.checkbox-container.alert-text .checkbox-text {
+  color: hsl(var(--accent-red)) !important;
+  font-weight: 800;
+  text-shadow: 0 0 8px hsla(var(--accent-red), 0.3);
+}
+
+@keyframes textShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+}
+
+.disclaimer-btns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .disclaimer-btns {
+    grid-template-columns: 1.3fr 1fr;
+  }
+}
+
+/* ==========================================================================
+   纸牌堆叠与反射高光样式 (Visual Card Deck & Gloss Shine Styles)
+   ========================================================================== */
+.card-deck-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 380px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-deck-underlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(25, 15, 45, 0.45) 0%, rgba(12, 6, 22, 0.5) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.6s cubic-bezier(0.25, 1.5, 0.5, 1), opacity 0.6s ease;
+}
+
+.card-deck-underlay.deck-1 {
+  transform: translateY(8px) rotate(-3.5deg) scale(0.96);
+  opacity: 0.75;
+  z-index: 2;
+}
+
+.card-deck-underlay.deck-2 {
+  transform: translateY(16px) rotate(2.5deg) scale(0.92);
+  opacity: 0.4;
+  z-index: 1;
+}
+
+/* 抽卡时修饰牌的弹性微微收缩回弹动画 */
+.card-container.drawing-out ~ .card-deck-underlay.deck-1 {
+  transform: translateY(4px) rotate(-1deg) scale(0.98);
+  opacity: 0.85;
+}
+.card-container.drawing-out ~ .card-deck-underlay.deck-2 {
+  transform: translateY(8px) rotate(1deg) scale(0.95);
+  opacity: 0.6;
+}
+
+.card-container.drawing-in ~ .card-deck-underlay {
+  animation: deckJiggle 0.4s cubic-bezier(0.25, 1.5, 0.5, 1);
+}
+
+@keyframes deckJiggle {
+  0% { transform: translateY(16px) scale(0.9) rotate(0); }
+  50% { transform: translateY(2px) scale(0.98) rotate(-4deg); }
+  100% {
+    transform: translateY(8px) rotate(-3.5deg) scale(0.96);
+  }
+}
+
+/* 高级 3D 反射光 */
+.card-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at var(--shine-x, 50%) var(--shine-y, 50%),
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ==========================================================================
+   全屏混合强光过渡层 (Cinema-style Screen Transition Overlay)
+   ========================================================================== */
+.screen-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, hsl(var(--primary-purple)) 0%, hsl(var(--bg-deep)) 100%);
+  z-index: 99999;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* ==========================================================================
+   矢量图标微交互 (Lucide Vector Micro-animations)
+   ========================================================================== */
+.heart-pulse-icon {
+  animation: heartPulseSlow 2.5s infinite ease-in-out;
+}
+
+@keyframes heartPulseSlow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px hsla(var(--primary-pink), 0.5)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 15px hsla(var(--primary-pink), 0.95)); }
+}
+
+.logo:hover .logo-icon {
+  animation: flameWobble 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes flameWobble {
+  0% { transform: scale(1.1) rotate(-5deg); }
+  100% { transform: scale(1.1) rotate(5deg); }
+}
+
+.btn:hover .lucide-flame, .btn:hover svg[data-lucide="flame"] {
+  animation: flameWobble 0.5s infinite alternate ease-in-out;
+}
+
+.btn:hover .lucide-message-square, .btn:hover svg[data-lucide="message-square"] {
+  animation: bubbleWobble 0.4s ease-in-out;
+}
+
+@keyframes bubbleWobble {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-4px) scale(1.15, 0.85); }
+  70% { transform: translateY(1px) scale(0.9, 1.1); }
+}
+

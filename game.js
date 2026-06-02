@@ -20,7 +20,9 @@ const state = {
     dare: [],
     penalty: []
   },
-  soundEnabled: true
+  soundEnabled: true,
+  captchaVerified: false,
+  isDrawing: false
 };
 
 // 热度描述常量
@@ -52,6 +54,19 @@ function initDOMElements() {
   elements = {
     setupScreen: document.getElementById('setup-screen'),
     gameScreen: document.getElementById('game-screen'),
+    
+    // Onboarding Elements
+    onboardingOverlay: document.getElementById('onboarding-overlay'),
+    captchaPanel: document.getElementById('captcha-panel'),
+    disclaimerPanel: document.getElementById('disclaimer-panel'),
+    slideTrack: document.getElementById('slide-track'),
+    slideProgress: document.getElementById('slide-progress'),
+    slideText: document.getElementById('slide-text'),
+    slideHandle: document.getElementById('slide-handle'),
+    agreeCheckbox: document.getElementById('agree-checkbox'),
+    btnAgree: document.getElementById('btn-agree'),
+    btnDisagree: document.getElementById('btn-disagree'),
+    screenFlash: document.getElementById('screen-flash'),
     
     // Setup inputs
     p1Name: document.getElementById('p1-name'),
@@ -308,6 +323,13 @@ function initCanvasParticles() {
   let particles = [];
   let sparks = [];
   
+  // 暴露粒子爆发方法给全局调用
+  window.emitSparkBurst = function(x, y, hue, count = 35) {
+    for (let i = 0; i < count; i++) {
+      sparks.push(new Spark(x, y, hue));
+    }
+  };
+  
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -352,24 +374,31 @@ function initCanvasParticles() {
     }
   }
   
-  // 鼠标/触控交互溅射粒子
+  // 物理抛物线重力溅射粒子
   class Spark {
     constructor(x, y, hue) {
       this.x = x;
       this.y = y;
-      this.size = Math.random() * 5 + 2;
-      this.speedY = (Math.random() * 2 - 1) - 0.5; // 轻微向上浮动
-      this.speedX = (Math.random() * 2 - 1);
+      this.size = Math.random() * 3.5 + 2.5;
+      
+      // 极坐标随机方向与爆炸初速度
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 5.5 + 2.5;
+      this.speedX = Math.cos(angle) * speed;
+      this.speedY = Math.sin(angle) * speed - 1.5; // 初速度微偏向上方
+      
       this.opacity = 1;
       this.color = `hsla(${hue}, 100%, 75%, `;
-      this.decay = Math.random() * 0.02 + 0.015; // 渐隐率
+      this.decay = Math.random() * 0.022 + 0.012; // 渐隐率
+      this.gravity = 0.13; // 重力加速度，实现抛物线下坠特效
     }
     
     update() {
+      this.speedY += this.gravity; // 重力影响
       this.y += this.speedY;
       this.x += this.speedX;
       this.opacity -= this.decay;
-      if (this.size > 0.2) this.size -= 0.06;
+      if (this.size > 0.2) this.size -= 0.05;
     }
     
     draw() {
@@ -721,6 +750,20 @@ function flipCard() {
   elements.cardInner.classList.add('is-flipped');
   state.currentCard.isFlipped = true;
   
+  // 电影级粒子爆破！真心话爆发极光蓝，大冒险爆发粉红
+  try {
+    const cardRect = elements.cardContainer.getBoundingClientRect();
+    const hue = state.currentCard.type === 'truth' ? 195 : 330;
+    if (window.emitSparkBurst) {
+      window.emitSparkBurst(
+        cardRect.left + cardRect.width / 2,
+        cardRect.top + cardRect.height / 2,
+        hue,
+        45
+      );
+    }
+  } catch (e) {}
+  
   // 抽卡决断按钮淡出，展示“完成”和“认罚”
   elements.decisionBtns.classList.add('hidden');
   elements.completeBtns.classList.remove('hidden');
@@ -782,6 +825,153 @@ function drawPenalty() {
 // ==========================================================================
 
 function bindEvents() {
+  // ==========================================
+  // 0. CAPTCHA人机滑动验证逻辑与手势
+  // ==========================================
+  let isDragging = false;
+  let startX = 0;
+  let maxSlide = 0;
+  let currentTranslation = 0;
+  
+  function getEventX(e) {
+    return e.touches ? e.touches[0].clientX : e.clientX;
+  }
+  
+  function onDragStart(e) {
+    if (state.captchaVerified) return;
+    isDragging = true;
+    startX = getEventX(e);
+    // 轨道宽度减去按钮宽度再减去边距
+    maxSlide = elements.slideTrack.clientWidth - elements.slideHandle.clientWidth - 6;
+    elements.slideHandle.style.transition = 'none';
+    elements.slideProgress.style.transition = 'none';
+  }
+  
+  function onDragMove(e) {
+    if (!isDragging || state.captchaVerified) return;
+    const currentX = getEventX(e);
+    let deltaX = currentX - startX;
+    
+    if (deltaX < 0) deltaX = 0;
+    if (deltaX > maxSlide) deltaX = maxSlide;
+    
+    currentTranslation = deltaX;
+    elements.slideHandle.style.transform = `translateX(${deltaX}px)`;
+    elements.slideProgress.style.width = `${deltaX + 25}px`;
+    
+    // 如果快到终点了 (96%以上)，算作成功
+    if (deltaX >= maxSlide * 0.96) {
+      triggerCaptchaSuccess();
+    }
+  }
+  
+  function onDragEnd() {
+    if (!isDragging || state.captchaVerified) return;
+    isDragging = false;
+    
+    // 未成功，平滑物理回弹
+    elements.slideHandle.style.transition = 'transform 0.4s cubic-bezier(0.25, 1.5, 0.5, 1)';
+    elements.slideProgress.style.transition = 'width 0.4s cubic-bezier(0.25, 1.5, 0.5, 1)';
+    elements.slideHandle.style.transform = 'translateX(0)';
+    elements.slideProgress.style.width = '0px';
+    currentTranslation = 0;
+  }
+  
+  function triggerCaptchaSuccess() {
+    state.captchaVerified = true;
+    isDragging = false;
+    
+    // 改变滑道样式
+    elements.slideTrack.classList.add('verified');
+    elements.slideText.textContent = "验证通过 (Verified)";
+    elements.slideHandle.style.transition = 'transform 0.2s';
+    elements.slideHandle.style.transform = `translateX(${maxSlide}px)`;
+    elements.slideProgress.style.width = '100%';
+    elements.slideHandle.innerHTML = `<i data-lucide="check" style="color: #4ade80;"></i>`;
+    lucide.createIcons();
+    
+    playSound('success');
+    
+    // 在滑块处爆发 45 颗极光蓝粒子
+    try {
+      const handleRect = elements.slideHandle.getBoundingClientRect();
+      if (window.emitSparkBurst) {
+        window.emitSparkBurst(handleRect.left + 25, handleRect.top + 25, 195, 45);
+      }
+    } catch (e) {}
+    
+    // 700ms 后切换到免责条款页面，优雅淡入
+    setTimeout(() => {
+      elements.captchaPanel.style.transform = 'scale(0.9) translateY(-20px)';
+      elements.captchaPanel.style.opacity = '0';
+      
+      setTimeout(() => {
+        elements.captchaPanel.classList.add('hidden');
+        elements.disclaimerPanel.classList.remove('hidden');
+      }, 300);
+    }, 700);
+  }
+  
+  elements.slideHandle.addEventListener('mousedown', onDragStart);
+  elements.slideHandle.addEventListener('touchstart', onDragStart, { passive: true });
+  
+  window.addEventListener('mousemove', onDragMove);
+  window.addEventListener('touchmove', onDragMove, { passive: false });
+  
+  window.addEventListener('mouseup', onDragEnd);
+  window.addEventListener('touchend', onDragEnd);
+
+  // ==========================================
+  // 1. 18+ 免责声明条款确认逻辑
+  // ==========================================
+  elements.agreeCheckbox.addEventListener('change', function() {
+    playSound('click');
+    if (this.checked) {
+      elements.btnAgree.classList.remove('disabled');
+      elements.agreeCheckbox.parentElement.classList.remove('alert-text');
+    } else {
+      elements.btnAgree.classList.add('disabled');
+    }
+  });
+  
+  elements.btnAgree.addEventListener('click', function() {
+    if (!elements.agreeCheckbox.checked) {
+      playSound('click');
+      const row = document.querySelector('.disclaimer-agree-row');
+      row.classList.add('shake');
+      elements.agreeCheckbox.parentElement.classList.add('alert-text');
+      setTimeout(() => row.classList.remove('shake'), 400);
+      return;
+    }
+    
+    playSound('success');
+    
+    // 按钮中心爆发极奢紫粒子
+    try {
+      const rect = elements.btnAgree.getBoundingClientRect();
+      if (window.emitSparkBurst) {
+        window.emitSparkBurst(rect.left + rect.width/2, rect.top + rect.height/2, 270, 35);
+      }
+    } catch (e) {}
+    
+    // 渐隐 Onboarding Overlay，进入 Setup 屏幕
+    elements.onboardingOverlay.style.opacity = '0';
+    setTimeout(() => {
+      elements.onboardingOverlay.classList.add('hidden');
+      elements.setupScreen.style.display = 'block';
+      elements.setupScreen.style.animation = 'fadeInScale 0.6s cubic-bezier(0.25, 1.5, 0.5, 1) forwards';
+    }, 800);
+  });
+  
+  elements.btnDisagree.addEventListener('click', function() {
+    playSound('click');
+    // 跳转到安全页
+    window.location.href = 'https://www.baidu.com';
+  });
+
+  // ==========================================
+  // 2. 原本的设置面板事件
+  // ==========================================
   // A. 设置面板性别按钮点击
   elements.p1Genders.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -866,7 +1056,7 @@ function bindEvents() {
     renderCustomItems();
   });
   
-  // G. 开始游戏按钮
+  // G. 开始游戏按钮 (含电影级闪光转场)
   elements.btnStart.addEventListener('click', function() {
     const name1 = elements.p1Name.value.trim() || '亲爱的他';
     const name2 = elements.p2Name.value.trim() || '小宝贝';
@@ -874,7 +1064,6 @@ function bindEvents() {
     state.players[0].name = name1;
     state.players[1].name = name2;
     
-    // 保存至本地
     try {
       localStorage.setItem('qd_p1_name', name1);
       localStorage.setItem('qd_p1_gender', state.players[0].gender);
@@ -885,72 +1074,126 @@ function bindEvents() {
     
     playSound('start_game');
     
-    // 切换屏幕
-    elements.setupScreen.style.display = 'none';
-    elements.gameScreen.style.display = 'block';
-    state.screen = 'play';
+    // 电影级闪光过场启动
+    elements.screenFlash.style.opacity = '1';
     
-    // 渲染主游戏状态
-    state.activePlayerIdx = 0; // P1先开始
-    elements.turnName.textContent = state.players[0].name;
-    elements.turnAvatar.classList.remove('partner-turn');
-    elements.turnAvatar.innerHTML = `<i data-lucide="heart"></i>`;
-    
-    // 快捷热度联动
-    elements.quickHeatText.textContent = `LV.${state.heatLevel}`;
-    
-    resetCardState();
-    lucide.createIcons();
+    setTimeout(() => {
+      // 闪光完全遮蔽时，后台静默切屏
+      elements.setupScreen.style.display = 'none';
+      elements.gameScreen.style.display = 'block';
+      state.screen = 'play';
+      
+      state.activePlayerIdx = 0;
+      elements.turnName.textContent = state.players[0].name;
+      elements.turnAvatar.classList.remove('partner-turn');
+      elements.turnAvatar.innerHTML = `<i data-lucide="heart"></i>`;
+      elements.quickHeatText.textContent = `LV.${state.heatLevel}`;
+      
+      resetCardState();
+      lucide.createIcons();
+      
+      setTimeout(() => {
+        elements.screenFlash.style.opacity = '0';
+      }, 100);
+    }, 450);
   });
   
   // H. 真心话 & 大冒险 抽卡事件
   elements.btnTruth.addEventListener('click', () => drawCard('truth'));
   elements.btnDare.addEventListener('click', () => drawCard('dare'));
   
-  // I. 任务结案按钮
+  // I. 任务结案按钮 (爆发黄金礼炮粒子)
   elements.btnDone.addEventListener('click', function() {
     playSound('success');
+    
+    try {
+      const rect = elements.btnDone.getBoundingClientRect();
+      if (window.emitSparkBurst) {
+        window.emitSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 42, 45); // 皇家金 42
+      }
+    } catch (e) {}
+    
     switchTurn();
     resetCardState();
   });
   
-  // J. 认罚按钮
+  // J. 认罚按钮 (爆发红色警示火星)
   elements.btnForfeit.addEventListener('click', function() {
+    try {
+      const rect = elements.btnForfeit.getBoundingClientRect();
+      if (window.emitSparkBurst) {
+        window.emitSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 355, 35); // 警告红 355
+      }
+    } catch (e) {}
+    
     drawPenalty();
   });
   
-  // K. 认罚完成（跳过惩罚）按钮
+  // K. 认罚完成（跳过惩罚）按钮 (爆发黄金微光)
   elements.btnSkipPenalty.addEventListener('click', function() {
     playSound('success');
+    
+    try {
+      const rect = elements.btnSkipPenalty.getBoundingClientRect();
+      if (window.emitSparkBurst) {
+        window.emitSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 42, 30);
+      }
+    } catch (e) {}
+    
     switchTurn();
     resetCardState();
   });
   
-  // L. 倾听卡片背面点击（若未翻转，点击可翻转）
+  // L. 倾听卡片背面点击
   elements.cardContainer.addEventListener('click', function() {
     if (state.currentCard && !state.currentCard.isFlipped) {
       flipCard();
     }
   });
 
-  // M. Card 3D 悬浮倾斜动效 (3D Parallax Tilt)
-  elements.cardContainer.addEventListener('mousemove', function(e) {
+  // ==========================================
+  // 3. Card 3D 悬浮倾斜动效与触屏反射高光流光
+  // ==========================================
+  function handleCardTilt(clientX, clientY) {
     const rect = elements.cardContainer.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     
+    let deltaX = x;
+    let deltaY = y;
+    if (deltaX < 0) deltaX = 0;
+    if (deltaX > rect.width) deltaX = rect.width;
+    if (deltaY < 0) deltaY = 0;
+    if (deltaY > rect.height) deltaY = rect.height;
+    
     // 最大偏转15度
-    const rotateX = -((y - centerY) / centerY) * 15;
-    const rotateY = ((x - centerX) / centerX) * 15;
+    const rotateX = -((deltaY - centerY) / centerY) * 15;
+    const rotateY = ((deltaX - centerX) / centerX) * 15;
     
     if (elements.cardInner.classList.contains('is-flipped')) {
       elements.cardInner.style.transform = `rotateY(180deg) rotateX(${rotateX}deg) rotateY(${-rotateY}deg) scale(1.04)`;
     } else {
       elements.cardInner.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`;
     }
+    
+    // 动态设定 CSS 反射渐变中心点
+    const shineX = (deltaX / rect.width) * 100;
+    const shineY = (deltaY / rect.height) * 100;
+    elements.cardContainer.style.setProperty('--shine-x', `${shineX}%`);
+    elements.cardContainer.style.setProperty('--shine-y', `${shineY}%`);
+  }
+
+  elements.cardContainer.addEventListener('mousemove', function(e) {
+    handleCardTilt(e.clientX, e.clientY);
   });
+
+  elements.cardContainer.addEventListener('touchmove', function(e) {
+    if (e.touches.length > 0) {
+      handleCardTilt(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
 
   elements.cardContainer.addEventListener('mouseleave', function() {
     if (elements.cardInner.classList.contains('is-flipped')) {
@@ -958,6 +1201,9 @@ function bindEvents() {
     } else {
       elements.cardInner.style.transform = 'none';
     }
+    // 恢复默认高光位置居中
+    elements.cardContainer.style.setProperty('--shine-x', '50%');
+    elements.cardContainer.style.setProperty('--shine-y', '50%');
   });
 }
 
