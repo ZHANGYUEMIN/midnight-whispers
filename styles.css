@@ -1955,4 +1955,129 @@ footer a:hover {
   background: hsl(var(--primary-purple));
 }
 
+/* ==========================================================================
+   自定义极奢鼠标指针样式 (Custom Luxury Cursor)
+   ========================================================================== */
+@media (hover: hover) {
+  /* 在支持Hover悬停的桌面系统，全局隐藏默认光标，替换为高端艺术光标 */
+  body, a, button, input, textarea, [role="button"], .context-item, .gender-btn {
+    cursor: none !important;
+  }
+  
+  .custom-cursor-dot {
+    width: 6px;
+    height: 6px;
+    background-color: hsl(var(--primary-pink));
+    border-radius: 50%;
+    position: fixed;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 1000000;
+    box-shadow: 0 0 10px hsl(var(--primary-pink)), 0 0 20px hsl(var(--primary-pink));
+    transition: width 0.15s, height 0.15s, background-color 0.15s;
+  }
+
+  .custom-cursor-ring {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid hsl(var(--primary-cyan));
+    border-radius: 50%;
+    position: fixed;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 999999;
+    box-shadow: 0 0 10px hsla(var(--primary-cyan), 0.35);
+    /* 100ms 延迟提供超高端物理阻尼悬浮感 (Fluid damping follow) */
+    transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1), width 0.2s, height 0.2s, border-color 0.2s, background-color 0.2s;
+  }
+
+  /* 悬停可点击元素时的物理吸附扩展反馈 */
+  .custom-cursor-dot.hovered {
+    width: 4px;
+    height: 4px;
+    background-color: hsl(var(--primary-purple));
+    box-shadow: 0 0 12px hsl(var(--primary-purple));
+  }
+
+  .custom-cursor-ring.hovered {
+    width: 42px;
+    height: 42px;
+    border-color: hsl(var(--primary-purple));
+    background-color: rgba(155, 80, 255, 0.08);
+    box-shadow: 0 0 20px hsla(var(--primary-purple), 0.4);
+  }
+}
+
+/* 移动端/触控面板自动降级，绝对隐藏自定义光标并恢复默认手指触控 */
+@media (hover: none) {
+  .custom-cursor-dot, .custom-cursor-ring {
+    display: none !important;
+  }
+  body, a, button, input, textarea, [role="button"] {
+    cursor: auto !important;
+  }
+}
+
+/* ==========================================================================
+   自定义右键菜单样式 (Custom Context Menu)
+   ========================================================================== */
+.custom-context-menu {
+  position: fixed;
+  z-index: 1000005;
+  background: linear-gradient(135deg, rgba(22, 10, 38, 0.94) 0%, rgba(10, 5, 20, 0.98) 100%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 6px !important;
+  width: 210px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px hsla(var(--primary-purple), 0.2) !important;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.95);
+  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto;
+}
+
+.custom-context-menu.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.context-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: hsl(var(--text-secondary));
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.context-item:hover {
+  color: #fff;
+  background: linear-gradient(90deg, hsla(var(--primary-purple), 0.3) 0%, rgba(255, 255, 255, 0.02) 100%);
+  box-shadow: inset 2.5px 0 0 hsl(var(--primary-purple));
+}
+
+.context-item svg, .context-item .lucide {
+  width: 14px;
+  height: 14px;
+  color: hsl(var(--text-muted));
+  transition: color var(--transition-fast);
+}
+
+.context-item:hover svg, .context-item:hover .lucide {
+  color: hsl(var(--primary-purple));
+}
+
+.context-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 5px 0;
+}
+
+
 

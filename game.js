@@ -1273,6 +1273,132 @@ function bindEvents() {
       hideModal();
     }
   });
+
+  // ==========================================
+  // 5. 自定义极奢鼠标指针交互逻辑
+  // ==========================================
+  const cursorDot = document.getElementById('custom-cursor-dot');
+  const cursorRing = document.getElementById('custom-cursor-ring');
+
+  if (cursorDot && cursorRing) {
+    window.addEventListener('mousemove', function(e) {
+      cursorDot.style.left = `${e.clientX}px`;
+      cursorDot.style.top = `${e.clientY}px`;
+      
+      // 80ms 延迟提供超高端物理阻尼跟随感 (Fluid damping follow)
+      cursorRing.style.left = `${e.clientX}px`;
+      cursorRing.style.top = `${e.clientY}px`;
+    });
+
+    // 悬浮可点击元素时触发爆炸吸附扩展反馈
+    const hoverables = 'a, button, input, textarea, .gender-btn, .quick-heat-badge, .card-container, .delete-btn, .context-item';
+    document.body.addEventListener('mouseover', function(e) {
+      if (e.target.closest(hoverables)) {
+        cursorDot.classList.add('hovered');
+        cursorRing.classList.add('hovered');
+      }
+    });
+
+    document.body.addEventListener('mouseout', function(e) {
+      if (e.target.closest(hoverables)) {
+        cursorDot.classList.remove('hovered');
+        cursorRing.classList.remove('hovered');
+      }
+    });
+
+    // 点击时的压缩微反馈
+    window.addEventListener('mousedown', function() {
+      cursorDot.style.transform = 'translate(-50%, -50%) scale(0.6)';
+      cursorRing.style.transform = 'translate(-50%, -50%) scale(0.85)';
+    });
+
+    window.addEventListener('mouseup', function() {
+      cursorDot.style.transform = 'translate(-50%, -50%) scale(1)';
+      cursorRing.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+  }
+
+  // ==========================================
+  // 6. 自定义右键菜单交互逻辑
+  // ==========================================
+  const contextMenu = document.getElementById('custom-context-menu');
+
+  if (contextMenu) {
+    window.addEventListener('contextmenu', function(e) {
+      // 仅在支持鼠标悬停的桌面端激活自定义右键菜单，防止在移动端触控时长按冲突
+      if (window.matchMedia('(hover: hover)').matches) {
+        e.preventDefault();
+        
+        // 获取点击坐标
+        const x = e.clientX;
+        const y = e.clientY;
+        const winWidth = window.innerWidth;
+        const winHeight = window.innerHeight;
+        const menuWidth = contextMenu.offsetWidth || 210;
+        const menuHeight = contextMenu.offsetHeight || 250;
+        
+        // 防止菜单在屏幕边缘溢出
+        let finalX = x;
+        let finalY = y;
+        if (x + menuWidth > winWidth) finalX = winWidth - menuWidth - 10;
+        if (y + menuHeight > winHeight) finalY = winHeight - menuHeight - 10;
+        
+        contextMenu.style.left = `${finalX}px`;
+        contextMenu.style.top = `${finalY}px`;
+        contextMenu.classList.add('active');
+        
+        playSound('click');
+      }
+    });
+
+    // 点击其他地方隐藏右键菜单
+    window.addEventListener('click', function() {
+      contextMenu.classList.remove('active');
+    });
+
+    // 键盘ESC键退出菜单
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        contextMenu.classList.remove('active');
+      }
+    });
+
+    // 右键点击菜单项的行为
+    contextMenu.addEventListener('click', function(e) {
+      const item = e.target.closest('.context-item');
+      if (!item) return;
+      
+      const action = item.dataset.action;
+      if (action === 'restart') {
+        playSound('success');
+        // 过渡闪光返回设置界面
+        elements.screenFlash.style.opacity = '1';
+        setTimeout(() => {
+          elements.gameScreen.style.display = 'none';
+          elements.setupScreen.style.display = 'block';
+          elements.setupScreen.style.animation = 'fadeInScale 0.6s cubic-bezier(0.25, 1.5, 0.5, 1) forwards';
+          state.screen = 'setup';
+          setTimeout(() => {
+            elements.screenFlash.style.opacity = '0';
+          }, 100);
+        }, 450);
+      }
+      else if (action === 'sound') {
+        elements.btnSoundToggle.click(); // 触发声音开关
+      }
+      else if (action === 'privacy') {
+        elements.linkPrivacy.click(); // 触发隐私政策弹窗
+      }
+      else if (action === 'terms') {
+        elements.linkTerms.click(); // 触发服务条款弹窗
+      }
+      else if (action === 'github') {
+        window.open('https://github.com/ZHANGYUEMIN/midnight-whispers', '_blank');
+      }
+      
+      contextMenu.classList.remove('active');
+    });
+  }
 }
 
 // ==========================================================================
