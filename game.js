@@ -628,62 +628,75 @@ function resetCardState() {
  * 核心抽卡方法
  * @param {string} type 'truth' | 'dare'
  */
+/**
+ * 核心抽卡与动画管理方法
+ * @param {string} type 'truth' | 'dare'
+ */
 function drawCard(type) {
-  playSound(type);
+  if (state.isDrawing) return;
+  state.isDrawing = true;
   
-  // 1. 获取对应的题库列表
-  let sourceList = [];
-  if (type === 'truth') {
-    sourceList = [...TRUTH_DATABASE[`level${state.heatLevel}`]];
-  } else {
-    sourceList = [...DARE_DATABASE[`level${state.heatLevel}`]];
-  }
+  // 1. 触发卡片“向下收回”抽牌动画
+  elements.cardContainer.classList.add('drawing-out');
   
-  // 2. 混合本地自定义题目（如果类型相同）
-  const matchingCustom = state.customPool.filter(item => item.type === type);
-  matchingCustom.forEach(c => sourceList.push(c.text));
-  
-  // 3. 去重与历史过滤
-  let availableList = sourceList.filter(item => !state.history[type].includes(item));
-  if (availableList.length === 0) {
-    // 题库如果抽干，清空历史，重新抽取
-    state.history[type] = [];
-    availableList = sourceList;
-  }
-  
-  // 4. 随机抓取
-  const randomIndex = Math.floor(Math.random() * availableList.length);
-  const selectedText = availableList[randomIndex];
-  
-  // 记录历史
-  state.history[type].push(selectedText);
-  
-  // 5. 设置当前卡片状态
-  state.currentCard = {
-    type: type,
-    text: selectedText,
-    isFlipped: false
-  };
-  
-  // 6. 渲染卡片背面
-  renderCardBack(type, selectedText);
-  
-  // 7. 特效：卡片正面发光
-  const frontIcon = elements.cardContainer.querySelector('.card-pulse-icon');
-  const targetColor = type === 'truth' ? 'hsl(var(--primary-cyan))' : 'hsl(var(--primary-pink))';
-  frontIcon.innerHTML = type === 'truth' ? `<i data-lucide="help-circle"></i>` : `<i data-lucide="flame"></i>`;
-  frontIcon.style.borderColor = targetColor;
-  frontIcon.style.color = targetColor;
-  frontIcon.style.boxShadow = `0 0 25px ${targetColor}`;
-  lucide.createIcons();
-  
-  // 8. 触发流光翻牌边框加载，0.6秒后自动翻牌
-  elements.cardContainer.classList.add('sparkle-border');
-  
+  // 2. 250ms后（卡片完全滑出屏幕且不可见），在后台重置卡片状态并加载新题目
   setTimeout(() => {
-    elements.cardContainer.classList.remove('sparkle-border');
+    elements.cardContainer.classList.remove('drawing-out');
+    elements.cardInner.classList.remove('is-flipped');
+    
+    // 获取对应的题库列表
+    let sourceList = [];
+    if (type === 'truth') {
+      sourceList = [...TRUTH_DATABASE[`level${state.heatLevel}`]];
+    } else {
+      sourceList = [...DARE_DATABASE[`level${state.heatLevel}`]];
+    }
+    
+    // 混合本地自定义题目
+    const matchingCustom = state.customPool.filter(item => item.type === type);
+    matchingCustom.forEach(c => sourceList.push(c.text));
+    
+    // 去重与历史过滤
+    let availableList = sourceList.filter(item => !state.history[type].includes(item));
+    if (availableList.length === 0) {
+      state.history[type] = [];
+      availableList = sourceList;
+    }
+    
+    // 随机抓取新题目
+    const randomIndex = Math.floor(Math.random() * availableList.length);
+    const selectedText = availableList[randomIndex];
+    state.history[type].push(selectedText);
+    
+    state.currentCard = {
+      type: type,
+      text: selectedText,
+      isFlipped: false
+    };
+    
+    // 渲染卡片背面（此时 CSS 中文字 opacity 为 0，绝对不会发生提前泄露！）
+    renderCardBack(type, selectedText);
+    
+    // 设置正面卡片发光样式
+    const frontIcon = elements.cardContainer.querySelector('.card-pulse-icon');
+    const targetColor = type === 'truth' ? 'hsl(var(--primary-cyan))' : 'hsl(var(--primary-pink))';
+    frontIcon.innerHTML = type === 'truth' ? `<i data-lucide="help-circle"></i>` : `<i data-lucide="flame"></i>`;
+    frontIcon.style.borderColor = targetColor;
+    frontIcon.style.color = targetColor;
+    frontIcon.style.boxShadow = `0 0 25px ${targetColor}`;
+    lucide.createIcons();
+    
+    // 触发卡片“自上方发牌切入”动画及霓虹流光特效
+    elements.cardContainer.classList.add('drawing-in', 'sparkle-border');
+  }, 250);
+  
+  // 3. 700ms后（滑入动画 450ms 完成，卡片弹性归位），触发 3D 翻牌并播放对应专属声效
+  setTimeout(() => {
+    elements.cardContainer.classList.remove('drawing-in', 'sparkle-border');
     flipCard();
-  }, 600);
+    playSound(type); // 在卡片翻转的瞬间播放对应的水晶/火焰声效，回馈感更佳！
+    state.isDrawing = false;
+  }, 720);
 }
 
 /**
