@@ -973,8 +973,8 @@ function bindEvents() {
   
   elements.btnDisagree.addEventListener('click', function() {
     playSound('click');
-    // 跳转到安全页
-    window.location.href = 'https://www.baidu.com';
+    // 跳转到安全页 (谷歌搜索页)
+    window.location.href = 'https://www.google.com';
   });
 
   // ==========================================
@@ -1263,7 +1263,7 @@ function bindEvents() {
 
   elements.linkTerms.addEventListener('click', function(e) {
     e.preventDefault();
-    showModal("免责声明 (Terms of Service)", TERMS_TEXT);
+    showModal("服务条款与年龄限制 (Terms & Age Limit)", TERMS_TEXT);
   });
 
   elements.btnCloseModal.addEventListener('click', hideModal);
