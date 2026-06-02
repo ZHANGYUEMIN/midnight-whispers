@@ -1651,16 +1651,19 @@ footer a:hover {
 }
 
 .disclaimer-btns {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   width: 100%;
 }
 
-@media (min-width: 480px) {
-  .disclaimer-btns {
-    grid-template-columns: 1.3fr 1fr;
-  }
+.disclaimer-btns .btn {
+  width: 100%;
+  padding: 16px 32px;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  white-space: nowrap; /* 强制单行显示，绝不折行 */
+  justify-content: center;
 }
 
 /* ==========================================================================
