@@ -89,6 +89,13 @@ body {
   z-index: -1;
   opacity: 0.15;
   pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), filter 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.blur-glow.surge-active {
+  opacity: 0.45;
+  transform: scale(1.6) translate(30px, -30px);
+  filter: blur(80px);
 }
 .glow-pink {
   background-color: hsl(var(--primary-pink));
@@ -698,36 +705,45 @@ footer a:hover {
 }
 
 .card-container.drawing-out {
-  animation: drawCardOut 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation: drawCardOut 0.28s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .card-container.drawing-in {
-  animation: drawCardIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: drawCardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @keyframes drawCardOut {
   0% {
-    transform: translateY(0) scale(1) rotate(0);
+    transform: translateY(0) scale(1, 1) rotate(0);
     opacity: 1;
+    filter: blur(0);
   }
   100% {
-    transform: translateY(350px) scale(0.3) rotate(8deg);
+    transform: translateY(380px) scale(0.2, 1.3) rotate(8deg); /* 坠落时纵向拉伸 */
     opacity: 0;
+    filter: blur(6px); /* 模拟高速移动下的运动模糊 (Motion Blur) */
   }
 }
 
 @keyframes drawCardIn {
   0% {
-    transform: translateY(-350px) scale(0.3) rotate(-12deg);
+    transform: translateY(-380px) scale(0.2, 1.4) rotate(-15deg); /* 高空发牌切入拉伸 */
     opacity: 0;
+    filter: blur(5px);
   }
-  65% {
-    transform: translateY(12px) scale(1.04) rotate(4deg);
+  55% {
+    transform: translateY(18px) scale(1.08, 0.82) rotate(4deg); /* 落地弹性纵向挤压 (Squash) */
     opacity: 1;
+    filter: blur(1px);
+  }
+  75% {
+    transform: translateY(-8px) scale(0.96, 1.04) rotate(-2deg); /* 轻微回弹拉伸 (Stretch) */
+    filter: blur(0);
   }
   100% {
-    transform: translateY(0) scale(1) rotate(0);
+    transform: translateY(0) scale(1, 1) rotate(0);
     opacity: 1;
+    filter: blur(0);
   }
 }
 
@@ -749,7 +765,7 @@ footer a:hover {
 }
 
 .card-inner.is-flipped {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) rotateZ(3deg); /* 翻转时加入 3deg Z轴微拧转，打破呆板 */
 }
 
 .card-face {

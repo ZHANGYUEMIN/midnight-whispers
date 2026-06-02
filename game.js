@@ -636,10 +636,16 @@ function drawCard(type) {
   if (state.isDrawing) return;
   state.isDrawing = true;
   
-  // 1. 触发卡片“向下收回”抽牌动画
+  // 1. 触发背景气泡的强烈色彩涌动 (Surge)
+  const targetGlow = type === 'truth' ? document.querySelector('.glow-cyan') : document.querySelector('.glow-pink');
+  if (targetGlow) {
+    targetGlow.classList.add('surge-active');
+  }
+  
+  // 2. 触发卡片“向下收回”抽牌动画 (带高速运动模糊)
   elements.cardContainer.classList.add('drawing-out');
   
-  // 2. 250ms后（卡片完全滑出屏幕且不可见），在后台重置卡片状态并加载新题目
+  // 3. 280ms后（卡片完全滑出屏幕且不可见），在后台重置卡片状态并加载新题目
   setTimeout(() => {
     elements.cardContainer.classList.remove('drawing-out');
     elements.cardInner.classList.remove('is-flipped');
@@ -686,17 +692,24 @@ function drawCard(type) {
     frontIcon.style.boxShadow = `0 0 25px ${targetColor}`;
     lucide.createIcons();
     
-    // 触发卡片“自上方发牌切入”动画及霓虹流光特效
+    // 触发卡片“自上方发牌切入”弹性挤压动画及流光特效
     elements.cardContainer.classList.add('drawing-in', 'sparkle-border');
-  }, 250);
+  }, 280);
   
-  // 3. 700ms后（滑入动画 450ms 完成，卡片弹性归位），触发 3D 翻牌并播放对应专属声效
+  // 4. 780ms后（滑入动画 500ms 完成，卡片物理归位），触发 3D 翻牌并播放对应专属声效，缓动收回背景涌动
   setTimeout(() => {
     elements.cardContainer.classList.remove('drawing-in', 'sparkle-border');
     flipCard();
     playSound(type); // 在卡片翻转的瞬间播放对应的水晶/火焰声效，回馈感更佳！
     state.isDrawing = false;
-  }, 720);
+    
+    // 渐隐收回背景色彩涌动
+    if (targetGlow) {
+      setTimeout(() => {
+        targetGlow.classList.remove('surge-active');
+      }, 400); // 留出一点缓冲时间，让发光平滑退散！
+    }
+  }, 780);
 }
 
 /**
